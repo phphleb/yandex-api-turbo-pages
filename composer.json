@@ -1,0 +1,29 @@
+{
+  "name": "phphleb/yandex-api-turbo-pages",
+  "description": "Generating Turbo-pages using the Yandex API",
+  "homepage": "https://github.com/phphleb/yandex-api-turbo-pages/",
+  "type": "library",
+  "keywords": [
+    "yandex",
+    "turbo",
+    "api",
+    "generator",
+    "feed",
+    "php"
+  ],
+  "version": "v1.0.0",
+  "authors": [
+    {
+      "name": "Foma Tuturov",
+      "email": "fomiash@yandex.ru"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "YandexAPITurboPages\\": "/"
+    }
+  },
+  "require": {
+    "php": ">=5.5 || ^7.0.0"
+  }
+}
