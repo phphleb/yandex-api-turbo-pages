@@ -15,13 +15,10 @@ $version  = "v4"; // Версия API из параметра url
 // 1) Инициализация
 $channel = new \YandexAPITurboPages\YandexAPI($host, $api_url, $auth, $debug, $version);
 
-// 2) Получение id канала
-$id = $channel->getUserId();
-
-// 3) Получение ссылки
+// 2) Получение ссылки
 $link = $channel->getLink();
 
-// 4) Генерация контента, пример с минимальными значениями
+// 3) Генерация контента, пример с минимальными значениями
 $myItems = // ... Массив с подстановочными значениями
 $content = '<?xml version="1.0" encoding="UTF-8"?>' .
 '<rss version="2.0" xmlns:yandex="http://news.yandex.ru" xmlns:turbo="http://turbo.yandex.ru"><channel>';
@@ -45,15 +42,15 @@ $content.= '<item turbo = "true" >' .
     }
 $content.= '</channel></rss>';
 
-// 5) Добавить канал
+// 4) Добавить канал (c получением tack_id)
 $tack = $channel->addContent($content);
 
 // Дополнительно:
 
-// Запросить информацию о добавленном канале
-$tack = $channel->getChannelInfo($id);
+// Запросить информацию о добавленном канале (возвращает массив с информацией)
+$channel_info = $channel->getChannelInfo($tack);
 
-// Запросить информацию о добавленных каналах за месяц
+// Запросить информацию о добавленных каналах за месяц (возвращает массив с перечнем каналов)
 $info = $channel->getChannelsInfoForPeriod();
 
 
