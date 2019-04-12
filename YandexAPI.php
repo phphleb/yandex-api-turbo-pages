@@ -127,7 +127,7 @@ class YandexAPI
 
             // Запрос прошёл успешно
             $this->upload_address = $result['upload_address'];
-            $this->upload_address_valid_until = isset($result['upload_address']) ? $result['upload_address'] : "";
+            $this->upload_address_valid_until = isset($result['valid_until']) ? $result['valid_until'] : "";
             return $this->upload_address;
 
         }
