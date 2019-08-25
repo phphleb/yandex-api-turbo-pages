@@ -212,5 +212,16 @@ class YandexAPI
         return false;
     }
 
+    /**
+     * Принудительное обновление ссылки для загрузки
+     *
+     * @return bool|string
+     */
+    public function updateLinkUrl()
+    {
+        $this->link_url = null;
+        return $this->getLink();
+    }
+
 
 }
