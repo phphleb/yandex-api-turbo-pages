@@ -26,6 +26,15 @@ class YandexAPI
     // debug > true/false включение выключение режима отладки
     // api_version > версия API из параметра url
     // full_auth если начало заголовка авторизации отличается от "Authorization: OAuth"
+    /**
+     * YandexAPI constructor.
+     * @param string $host
+     * @param string $url
+     * @param string $auth
+     * @param bool $debug
+     * @param string $api_version
+     * @param null|string $full_auth
+     */
     public function __construct($host, $url, $auth, $debug = true, $api_version = 'v4', $full_auth = null)
     {
         $this->url = $url;
@@ -184,6 +193,11 @@ class YandexAPI
 
     // Получение информации о каналах за месяц с возможностью отправить собственный запрос
     // с добавлением фильтров (например ["limit"=>10, "task_type_filter"=>"ALL"]) из указанных в документации API турбостраниц
+    /**
+     * @param null|string $get_task_url
+     * @param array $filters
+     * @return bool|array
+     */
     public function getChannelsInfoForPeriod($get_task_url = null, $filters = [])
     {
         $this->get_task_url = $get_task_url ? $get_task_url : "https://api.webmaster.yandex.net/" .
