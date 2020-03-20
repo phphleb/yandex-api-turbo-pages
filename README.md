@@ -29,13 +29,13 @@ $content = '< ... >';
 // 3) Формирование ссылки (с получением адреса загрузки)
 $link = $channel->getLink();
 
-// 4) Добавить канал (c получением tack_id)
-$tack = $channel->addContent($content);
+// 4) Добавить канал (c получением task_id)
+$task = $channel->addContent($content);
 
 // Дополнительно:
 
 // Запросить информацию о добавленном канале (возвращает массив с информацией)
-$channel_info = $channel->getChannelInfo($tack);
+$channel_info = $channel->getChannelInfo($task);
 
 // Запросить информацию о добавленных каналах за месяц (возвращает массив с перечнем каналов)
 $info = $channel->getChannelsInfoForPeriod();
