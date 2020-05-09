@@ -100,7 +100,7 @@ class YandexAPI
     // Запуск сформированного запроса с получением user_id
     private function get_user_id()
     {
-        $result = json_decode($this->get_url($this->url, stream_context_create($this->arrContextOptions())), true);
+        $result = json_decode($this->get_url($this->url, $this->arrContextOptions()), true);
 
         if (isset($result['user_id'])) {
 
@@ -117,7 +117,7 @@ class YandexAPI
         if($this->curl){
             return $this->getUrlUsingCurl($url, $headers['http']);
         }
-        return file_get_contents($url, false, $headers);
+        return file_get_contents($url, false, stream_context_create($headers));
     }
 
 
@@ -136,7 +136,7 @@ class YandexAPI
     // Запуск сформированного запроса с получением ссылки на загрузку
     private function get_link_url()
     {
-        $result = json_decode($this->get_url($this->link_url, stream_context_create($this->arrContextOptions())), true);
+        $result = json_decode($this->get_url($this->link_url, $this->arrContextOptions()), true);
 
         if (isset($result['upload_address'])) {
 
@@ -161,7 +161,7 @@ class YandexAPI
 
     private function add_content()
     {
-        $result = json_decode($this->get_url($this->upload_address, stream_context_create($this->arrContextAddOptions())), true);
+        $result = json_decode($this->get_url($this->upload_address, $this->arrContextAddOptions()), true);
 
         if (isset($result['task_id'])) {
 
@@ -189,7 +189,7 @@ class YandexAPI
     private function get_channel_info()
     {
 
-        $result = json_decode($this->get_url($this->get_task_url, stream_context_create($this->arrContextOptions())), true);
+        $result = json_decode($this->get_url($this->get_task_url, $this->arrContextOptions()), true);
 
         if (isset($result['load_status'])) {
             return $result;
@@ -215,7 +215,7 @@ class YandexAPI
 
     private function get_channels_info()
     {
-        $result = json_decode($this->get_url($this->get_task_url, stream_context_create($this->arrContextOptions())), true);
+        $result = json_decode($this->get_url($this->get_task_url, $this->arrContextOptions()), true);
 
         return (count($result))? $result : false;
 
