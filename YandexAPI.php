@@ -18,6 +18,7 @@ class YandexAPI
     private $upload_address_valid_until = null;// Срок действия ссылки на загрузку
     private $headers = array("Content-Type: application/x-www-form-urlencoded");
     private $add_headers = array("Content-Type: application/rss+xml");
+    private $curl = false; // Выполнять запросы через curl
 
     // Принимает:
     // host > url сайта типа https:example.com:443 Внимание(!) - без слешей. Порт для https - 443
@@ -25,7 +26,8 @@ class YandexAPI
     // auth > "KEY" код авторизации (токен, сгенерированный для сайта в Яндекс.Вебмастере)
     // debug > true/false включение выключение режима отладки
     // api_version > версия API из параметра url
-    // full_auth если начало заголовка авторизации отличается от "Authorization: OAuth"
+    // full_auth > если начало заголовка авторизации отличается от "Authorization: OAuth"
+    // curl > если нет возможности включить allow_url_fopen на сервере, то необходимо запросы производить через cURL
     /**
      * YandexAPI constructor.
      * @param string $host
@@ -34,8 +36,9 @@ class YandexAPI
      * @param bool $debug
      * @param string $api_version
      * @param null|string $full_auth
+     * @param bool $curl
      */
-    public function __construct($host, $url, $auth, $debug = true, $api_version = 'v4', $full_auth = null)
+    public function __construct($host, $url, $auth, $debug = true, $api_version = 'v4', $full_auth = null, $curl = false)
     {
         $this->url = $url;
         $this->host = $host;
@@ -43,7 +46,7 @@ class YandexAPI
         $this->api_version = $api_version;
         $this->headers[] = ($full_auth ? $full_auth : "Authorization: OAuth") . " " . $auth;
         $this->add_headers[] = ($full_auth ? $full_auth : "Authorization: OAuth") . " " . $auth;
-
+        $this->curl = $curl;
         $this->get_user_id();
     }
 
@@ -77,7 +80,7 @@ class YandexAPI
             'http' => array(
                 'method' => 'GET',
                 'ignore_errors' => true,
-                'header' => implode("\r\n", $this->headers)
+                'header' => $this->curl ? $this->headers : implode("\r\n", $this->headers)
             ),
         );
     }
@@ -88,7 +91,7 @@ class YandexAPI
             'http' => array(
                 'method' => 'POST',
                 'ignore_errors' => true,
-                'header' => implode("\r\n", $this->add_headers),
+                'header' => $this->curl ? $this->add_headers : implode("\r\n", $this->add_headers),
                 'content' => $this->content
             ),
         );
@@ -111,6 +114,9 @@ class YandexAPI
 
     private function get_url($url, $headers)
     {
+        if($this->curl){
+            return $this->getUrlUsingCurl($url, $headers['http']);
+        }
         return file_get_contents($url, false, $headers);
     }
 
@@ -235,6 +241,32 @@ class YandexAPI
     {
         $this->link_url = null;
         return $this->getLink();
+    }
+
+    /**
+     * Возвращает результат взаимодействия с API по всем запросам через cURL
+     * @param string $url - на какой  url отправлять запрос
+     * @param string|array $data - может использовать как массив, так и строку с параметрами
+     * @return bool|string
+     */
+    protected function getUrlUsingCurl($url, $data) {
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $data['method']);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $data['header']);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        if ($data['method'] == 'POST') {
+            curl_setopt($curl, CURLOPT_POST, true);
+        }
+        if (isset($data['content'])) {
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data['content']);
+        }
+        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        $result = curl_exec($curl);
+        curl_close($curl);
+
+        return $result;
     }
 
 
