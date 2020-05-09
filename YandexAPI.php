@@ -20,23 +20,15 @@ class YandexAPI
     private $add_headers = array("Content-Type: application/rss+xml");
     private $curl = false; // Выполнять запросы через cURL
 
-    // Принимает:
-    // host > url сайта типа https:example.com:443 Внимание(!) - без слешей. Порт для https - 443
-    // url > вида "https://api.webmaster.yandex.net/v4/user" согласно документации API турбостраниц.
-    // auth > "KEY" код авторизации (токен, сгенерированный для сайта в Яндекс.Вебмастере)
-    // debug > true/false включение выключение режима отладки
-    // api_version > версия API из параметра url
-    // full_auth > если начало заголовка авторизации отличается от "Authorization: OAuth"
-    // curl > если нет возможности включить allow_url_fopen на сервере, то необходимо запросы производить через cURL
     /**
      * YandexAPI constructor.
-     * @param string $host
-     * @param string $url
-     * @param string $auth
-     * @param bool $debug
-     * @param string $api_version
-     * @param null|string $full_auth
-     * @param bool $curl
+     * @param string $host - url сайта типа https:example.com:443 Внимание(!) - без слешей. Порт для https - 443
+     * @param string $url - вида "https://api.webmaster.yandex.net/v4/user" согласно документации API турбостраниц.
+     * @param string $auth - "KEY" код авторизации (токен, сгенерированный для сайта в Яндекс.Вебмастере)
+     * @param bool $debug - включение/выключение режима отладки
+     * @param string $api_version - версия API из параметра url
+     * @param null|string $full_auth - если начало заголовка авторизации отличается от "Authorization: OAuth"
+     * @param bool $curl - если нет возможности включить allow_url_fopen на сервере, то необходимо запросы производить через cURL
      */
     public function __construct($host, $url, $auth, $debug = true, $api_version = 'v4', $full_auth = null, $curl = false)
     {
