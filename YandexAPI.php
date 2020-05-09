@@ -18,7 +18,7 @@ class YandexAPI
     private $upload_address_valid_until = null;// Срок действия ссылки на загрузку
     private $headers = array("Content-Type: application/x-www-form-urlencoded");
     private $add_headers = array("Content-Type: application/rss+xml");
-    private $curl = false; // Выполнять запросы через curl
+    private $curl = false; // Выполнять запросы через cURL
 
     // Принимает:
     // host > url сайта типа https:example.com:443 Внимание(!) - без слешей. Порт для https - 443
@@ -74,6 +74,67 @@ class YandexAPI
         return $this->task_ids;
     }
 
+    // Получение адреса с возможностью отправить собственный запрос
+    public function getLink($link_url = null)
+    {
+        if (!empty($this->link_url)) return $this->link_url;
+
+        $this->link_url = $link_url ? $link_url : "https://api.webmaster.yandex.net/" .
+            $this->api_version . "/user/" . $this->user_id . "/hosts/" . $this->host .
+            "/turbo/uploadAddress" . ($this->debug ? "?mode=DEBUG" : "");
+
+        return $this->get_link_url();
+    }
+
+    // Добавление турбостраниц
+    public function addContent($content)
+    {
+        $this->num_page++;
+        if (!is_string($content)) print("\n" . "#" . $this->num_page . " Контент не является строковым значением." . "\n");
+        $this->content = $content;
+        return $this->add_content();
+
+    }
+
+    // Получение информации о каналах за месяц с возможностью отправить собственный запрос
+    // с добавлением фильтров (например ["limit"=>10, "task_type_filter"=>"ALL"]) из указанных в документации API турбостраниц
+    /**
+     * @param null|string $get_task_url
+     * @param array $filters
+     * @return bool|array
+     */
+    public function getChannelsInfoForPeriod($get_task_url = null, $filters = [])
+    {
+        $this->get_task_url = $get_task_url ? $get_task_url : "https://api.webmaster.yandex.net/" .
+            $this->api_version . "/user/" . $this->user_id . "/hosts/" . $this->host .
+            "/turbo/tasks" . (count($filters) ? "?" . http_build_query($filters, null, '&') : "");
+
+        return $this->get_channels_info();
+    }
+
+    // Получение информации о канале с возможностью отправить собственный запрос
+    public function getChannelInfo($task_id = null, $get_task_url = null)
+    {
+        $task_id = $task_id ? $task_id : end($this->task_ids);
+
+        $this->get_task_url = $get_task_url ? $get_task_url : "https://api.webmaster.yandex.net/" .
+            $this->api_version . "/user/" . $this->user_id . "/hosts/" . $this->host .
+            "/turbo/tasks/" . $task_id;
+
+        return $this->get_channel_info();
+    }
+
+    /**
+     * Принудительное обновление ссылки для загрузки
+     *
+     * @return bool|string
+     */
+    public function updateLinkUrl()
+    {
+        $this->link_url = null;
+        return $this->getLink();
+    }
+
     private function arrContextOptions()
     {
         return array(
@@ -120,19 +181,6 @@ class YandexAPI
         return file_get_contents($url, false, stream_context_create($headers));
     }
 
-
-    // Получение адреса с возможностью отправить собственный запрос
-    public function getLink($link_url = null)
-    {
-        if (!empty($this->link_url)) return $this->link_url;
-
-        $this->link_url = $link_url ? $link_url : "https://api.webmaster.yandex.net/" .
-            $this->api_version . "/user/" . $this->user_id . "/hosts/" . $this->host .
-            "/turbo/uploadAddress" . ($this->debug ? "?mode=DEBUG" : "");
-
-        return $this->get_link_url();
-    }
-
     // Запуск сформированного запроса с получением ссылки на загрузку
     private function get_link_url()
     {
@@ -149,16 +197,6 @@ class YandexAPI
         return $this->no_result($result, 'upload_address');
     }
 
-    // Добавление турбостраниц
-    public function addContent($content)
-    {
-        $this->num_page++;
-        if (!is_string($content)) print("\n" . "#" . $this->num_page . " Контент не является строковым значением." . "\n");
-        $this->content = $content;
-        return $this->add_content();
-
-    }
-
     private function add_content()
     {
         $result = json_decode($this->get_url($this->upload_address, $this->arrContextAddOptions()), true);
@@ -173,19 +211,6 @@ class YandexAPI
         return $this->no_result($result, 'task_id', "#" . $this->num_page . " ");
     }
 
-    // Получение информации о канале с возможностью отправить собственный запрос
-    public function getChannelInfo($task_id = null, $get_task_url = null)
-    {
-        $task_id = $task_id ? $task_id : end($this->task_ids);
-
-        $this->get_task_url = $get_task_url ? $get_task_url : "https://api.webmaster.yandex.net/" .
-            $this->api_version . "/user/" . $this->user_id . "/hosts/" . $this->host .
-            "/turbo/tasks/" . $task_id;
-
-        return $this->get_channel_info();
-
-    }
-
     private function get_channel_info()
     {
 
@@ -195,22 +220,6 @@ class YandexAPI
             return $result;
         }
         return $this->no_result($result, 'channel_info');
-    }
-
-    // Получение информации о каналах за месяц с возможностью отправить собственный запрос
-    // с добавлением фильтров (например ["limit"=>10, "task_type_filter"=>"ALL"]) из указанных в документации API турбостраниц
-    /**
-     * @param null|string $get_task_url
-     * @param array $filters
-     * @return bool|array
-     */
-    public function getChannelsInfoForPeriod($get_task_url = null, $filters = [])
-    {
-        $this->get_task_url = $get_task_url ? $get_task_url : "https://api.webmaster.yandex.net/" .
-            $this->api_version . "/user/" . $this->user_id . "/hosts/" . $this->host .
-            "/turbo/tasks" . (count($filters) ? "?" . http_build_query($filters, null, '&') : "");
-
-        return $this->get_channels_info();
     }
 
     private function get_channels_info()
@@ -233,23 +242,13 @@ class YandexAPI
     }
 
     /**
-     * Принудительное обновление ссылки для загрузки
-     *
-     * @return bool|string
-     */
-    public function updateLinkUrl()
-    {
-        $this->link_url = null;
-        return $this->getLink();
-    }
-
-    /**
      * Возвращает результат взаимодействия с API по всем запросам через cURL
      * @param string $url - на какой  url отправлять запрос
      * @param string|array $data - может использовать как массив, так и строку с параметрами
      * @return bool|string
      */
-    protected function getUrlUsingCurl($url, $data) {
+    protected function getUrlUsingCurl($url, $data)
+    {
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $data['method']);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $data['header']);

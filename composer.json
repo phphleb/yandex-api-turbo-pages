@@ -24,8 +24,10 @@
     }
   },
   "require": {
-    "ext-curl": "*",
     "ext-json": "*",
     "php": ">=5.5 || ^7.0.0"
+  },
+  "suggest": {
+    "ext-curl": "For alternative cURL queries"
   }
 }
