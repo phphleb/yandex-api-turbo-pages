@@ -241,6 +241,8 @@ class YandexAPI
      */
     protected function getUrlUsingCurl($url, $data)
     {
+        if(!function_exists("curl_init")) die("\n" . "Не подключена библиотека libcurl (cURL) в PHP" . "\n");
+
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $data['method']);
         curl_setopt($curl, CURLOPT_HTTPHEADER, $data['header']);
