@@ -19,6 +19,7 @@ class YandexAPI
     private $headers = array("Content-Type: application/x-www-form-urlencoded");
     private $add_headers = array("Content-Type: application/rss+xml");
     private $curl = false; // Выполнять запросы через cURL
+    private $error = false; // Ошибка во время выполнения
 
     /**
      * YandexAPI constructor.
@@ -43,9 +44,23 @@ class YandexAPI
     }
 
     // Можно получить user_id
+
+    /**
+     * Возвращает значение ID пользователя
+     * @return int
+     */
     public function getUserId()
     {
         return $this->user_id;
+    }
+
+    /**
+     * Возвращает результат проверки на наличие ошибки при выполнении предыдущих запросов
+     * @return bool
+     */
+    public function getErrorChecking()
+    {
+        return $this->error;
     }
 
     // Получить срок годности адреса загрузки после выполнения getLink()
@@ -224,6 +239,7 @@ class YandexAPI
 
     private function no_result($result, $name, $num = "")
     {
+        $this->error = true;
         if (!$result) {
             print "\n" . $num . "Отправка данных и получение $name: запрос не выполнен." . "\n";
         } else {
@@ -241,7 +257,10 @@ class YandexAPI
      */
     protected function getUrlUsingCurl($url, $data)
     {
-        if(!function_exists("curl_init")) die("\n" . "Не подключена библиотека libcurl (cURL) в PHP" . "\n");
+        if(!function_exists("curl_init")){
+            print "\n" . "Не подключена библиотека libcurl (cURL) в PHP" . "\n";
+            return false;
+        };
 
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $data['method']);

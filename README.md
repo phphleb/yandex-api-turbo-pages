@@ -47,5 +47,8 @@ $link = $channel->updateLinkUrl();
 // Получить срок годности текущего адреса загрузки, к нему можно привязать обновление ссылки
 $action_time = $channel->getValidUntil();
 
+// Проверить на наличие ошибок при выполнении запросов
+$existing_errors = $channel->getErrorChecking();
+
 
 ```
