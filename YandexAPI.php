@@ -43,8 +43,6 @@ class YandexAPI
         $this->get_user_id();
     }
 
-    // Можно получить user_id
-
     /**
      * Возвращает значение ID пользователя
      * @return int
@@ -63,25 +61,38 @@ class YandexAPI
         return $this->error;
     }
 
-    // Получить срок годности адреса загрузки после выполнения getLink()
+    /**
+     * Возвращает срок годности адреса загрузки после выполнения getLink()
+     * @return null|string
+     */
     public function getValidUntil()
     {
         return $this->upload_address_valid_until;
     }
 
-    // Получить номер добавленного текущим объектом канала
+    /**
+     * Возвращает номер добавленного текущим объектом канала
+     * @return int
+     */
     public function getShannelNum()
     {
         return $this->num_page;
     }
 
-    // Просмотр id отправленных текущим объектом страниц (массив)
+    /**
+     * Возвращает перечень id отправленных текущим объектом страниц (массив)
+     * @return array
+     */
     public function getTaskIds()
     {
         return $this->task_ids;
     }
 
-    // Получение адреса с возможностью отправить собственный запрос
+    /**
+     * Возвращает результат получения url-адреса с возможностью отправить собственный запрос
+     * @param null|string $link_url
+     * @return bool|string
+     */
     public function getLink($link_url = null)
     {
         if (!empty($this->link_url)) return $this->link_url;
@@ -93,7 +104,11 @@ class YandexAPI
         return $this->get_link_url();
     }
 
-    // Добавление турбостраниц
+    /**
+     * Добавляет турбостраницы (при успехе - возвращает числовой идентефикатор канала)
+     * @param string $content - турбостраницы в XML-формате (согласно спецификации Яндекса)
+     * @return bool|int
+     */
     public function addContent($content)
     {
         $this->num_page++;
@@ -103,9 +118,9 @@ class YandexAPI
 
     }
 
-    // Получение информации о каналах за месяц с возможностью отправить собственный запрос
-    // с добавлением фильтров (например ["limit"=>10, "task_type_filter"=>"ALL"]) из указанных в документации API турбостраниц
     /**
+     * Получение информации о каналах за месяц с возможностью отправить собственный запрос.
+     * С добавлением фильтров (например ["limit"=>10, "task_type_filter"=>"ALL"]) из указанных в документации API турбостраниц
      * @param null|string $get_task_url
      * @param array $filters
      * @return bool|array
@@ -119,7 +134,12 @@ class YandexAPI
         return $this->get_channels_info();
     }
 
-    // Получение информации о канале с возможностью отправить собственный запрос
+    /**
+     * Получение информации о канале с возможностью отправить собственный запрос
+     * @param null|int $task_id - числовой идентификатор канала
+     * @param null|string $get_task_url - произвольный запрос (если необходимо)
+     * @return array|bool
+     */
     public function getChannelInfo($task_id = null, $get_task_url = null)
     {
         $task_id = $task_id ? $task_id : end($this->task_ids);
@@ -133,7 +153,6 @@ class YandexAPI
 
     /**
      * Принудительное обновление ссылки для загрузки
-     *
      * @return bool|string
      */
     public function updateLinkUrl()
@@ -142,6 +161,10 @@ class YandexAPI
         return $this->getLink();
     }
 
+    /**
+     * Возвращает сформированные заголовки для GET-запроса
+     * @return array
+     */
     private function arrContextOptions()
     {
         return array(
@@ -153,6 +176,10 @@ class YandexAPI
         );
     }
 
+    /**
+     * Возвращает сформированные заголовки для POST-запроса c телом сообщения
+     * @return array
+     */
     private function arrContextAddOptions()
     {
         return array(
@@ -165,7 +192,24 @@ class YandexAPI
         );
     }
 
-    // Запуск сформированного запроса с получением user_id
+    /**
+     * Выполняет вариативный запрос по API c возвращением результата
+     * @param string $url
+     * @param array $headers
+     * @return bool|false|string
+     */
+    protected function get_url($url, $headers)
+    {
+        if($this->curl){
+            return $this->getUrlUsingCurl($url, $headers['http']);
+        }
+        return file_get_contents($url, false, stream_context_create($headers));
+    }
+
+    /**
+     * Запуск сформированного запроса с получением user_id
+     * @return bool|int
+     */
     private function get_user_id()
     {
         $result = json_decode($this->get_url($this->url, $this->arrContextOptions()), true);
@@ -180,15 +224,10 @@ class YandexAPI
         return $this->no_result($result, 'user_id');
     }
 
-    private function get_url($url, $headers)
-    {
-        if($this->curl){
-            return $this->getUrlUsingCurl($url, $headers['http']);
-        }
-        return file_get_contents($url, false, stream_context_create($headers));
-    }
-
-    // Запуск сформированного запроса с получением ссылки на загрузку
+    /**
+     * Запуск сформированного запроса с получением ссылки на загрузку
+     * @return bool|string
+     */
     private function get_link_url()
     {
         $result = json_decode($this->get_url($this->link_url, $this->arrContextOptions()), true);
@@ -204,6 +243,9 @@ class YandexAPI
         return $this->no_result($result, 'upload_address');
     }
 
+    /**
+     * @return bool|int
+     */
     private function add_content()
     {
         $result = json_decode($this->get_url($this->upload_address, $this->arrContextAddOptions()), true);
@@ -218,6 +260,9 @@ class YandexAPI
         return $this->no_result($result, 'task_id', "#" . $this->num_page . " ");
     }
 
+    /**
+     * @return bool|array
+     */
     private function get_channel_info()
     {
 
@@ -229,6 +274,9 @@ class YandexAPI
         return $this->no_result($result, 'channel_info');
     }
 
+    /**
+     * @return bool|array
+     */
     private function get_channels_info()
     {
         $result = json_decode($this->get_url($this->get_task_url, $this->arrContextOptions()), true);
@@ -237,6 +285,12 @@ class YandexAPI
 
     }
 
+    /**
+     * @param bool|array $result
+     * @param string $name
+     * @param string $num
+     * @return bool
+     */
     private function no_result($result, $name, $num = "")
     {
         $this->error = true;
