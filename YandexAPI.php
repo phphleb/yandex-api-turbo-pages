@@ -28,10 +28,10 @@ class YandexAPI
      * @param string $auth - "KEY" код авторизации (токен, сгенерированный для сайта в Яндекс.Вебмастере)
      * @param bool $debug - включение/выключение режима отладки
      * @param string $api_version - версия API из параметра url
-     * @param null|string $full_auth - если начало заголовка авторизации отличается от "Authorization: OAuth"
      * @param bool $curl - если нет возможности включить allow_url_fopen на сервере, то необходимо запросы производить через cURL
+     * @param null|string $full_auth - если начало заголовка авторизации отличается от "Authorization: OAuth"
      */
-    public function __construct($host, $url, $auth, $debug = true, $api_version = 'v4', $full_auth = null, $curl = false)
+    public function __construct($host, $url, $auth, $debug = true, $api_version = 'v4', $curl = false, $full_auth = null)
     {
         $this->url = $url;
         $this->host = $host;
@@ -260,7 +260,7 @@ class YandexAPI
         if(!function_exists("curl_init")){
             print "\n" . "Не подключена библиотека libcurl (cURL) в PHP" . "\n";
             return false;
-        };
+        }
 
         $curl = curl_init($url);
         curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $data['method']);
